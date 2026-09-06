@@ -457,10 +457,45 @@
 
 <script>
     // Form submission
-    document.querySelector('.contact-form').addEventListener('submit', (e) => {
+    const WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+    document.querySelector('.contact-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Thank you for your submission! We will contact you shortly.');
-        e.target.reset();
+        const form = e.target;
+        const submitBtn = form.querySelector('.btn-submit');
+        const originalBtnText = submitBtn.textContent;
+        const data = {
+            name: form.name.value,
+            email: form.email.value,
+            phone: form.phone.value,
+            service: form.service.value,
+            message: form.message.value,
+            appointment_date: form.appointment_date.value,
+            appointment_time: form.appointment_time.value
+        };
+
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert('Thank you! Your consultation request has been received. Check your email for confirmation.');
+                form.reset();
+            } else {
+                alert('Something went wrong: ' + (result.message || 'Please try again or call us directly.'));
+            }
+        } catch (err) {
+            alert('We could not submit your request right now. Please call us directly at (908) 514-8208.');
+        } finally {
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
+        }
     });
 </script>
 
